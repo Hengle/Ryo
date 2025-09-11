@@ -10,9 +10,9 @@ public static class CriWareConfig
     {
         // Name PTR shifted by 8.
         // Games:
-        // Digimon Story: Time Stranger / 2.87.17
-        // Sonic Racing CrossWorlds / 2.87.17
-        if (atomExVer >= new Version("2.18.17"))
+        // Digimon Story: Time Stranger / 2.28.17
+        // Sonic Racing CrossWorlds / 2.28.17
+        if (atomExVer >= new Version("2.28.17"))
         {
             AcbNameOffset = 0x98 + 0x8;
             //HcaDecodedEncryptKeyOffset = 0xb0;
