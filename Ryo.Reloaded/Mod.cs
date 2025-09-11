@@ -84,16 +84,16 @@ public unsafe class Mod : ModBase, IExports
         this.ryoApi = new(this.criAtomRegistry, this.audioRegistry, this.preprocessor, this.movieRegistry);
         this.modLoader.AddOrReplaceController<IRyoApi>(this.owner, this.ryoApi);
 
-        Project.Scans.AddScan("'CRI File System/PC' String", "43 52 49 20 46 69 6C 65 20 53 79 73 74 65 6D 2F 50 43", result =>
+        Project.Scans.AddScan("\"CRI AtomEx/PC\" String", "43 52 49 20 41 74 6F 6D 45 78 2F 50 43", result =>
         {
             var criBuild = Marshal.PtrToStringAnsi(result)!.TrimEnd('\n');
-            Log.Debug($"CriWare Build: {criBuild}");
+            Log.Debug($"Cri AtomEx Build: {criBuild}");
 
             var startOfs = criBuild.IndexOf("Ver.", StringComparison.Ordinal) + 4;
             var endOfs = criBuild.IndexOf("Build", StringComparison.Ordinal) - 1;
-            var criVersion = criBuild.Substring(startOfs, endOfs - startOfs);
+            var atomExVer = criBuild.Substring(startOfs, endOfs - startOfs);
             
-            CriWareConfig.SetVersion(new(criVersion));
+            CriWareConfig.SetAtomExVersion(new(atomExVer));
         });
         
         Project.Scans.AddScan("HCADecoder_SetDecryptionTable" ,"48 85 C9 75 ?? 8D 41 ?? C3 48 85 D2 74 1D", result =>
