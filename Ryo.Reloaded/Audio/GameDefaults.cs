@@ -107,12 +107,15 @@ internal static class GameDefaults
 
         var defaultConfig = new AudioConfig();
         
-        // TODO: Ideally use reflection to try getting a setting for every property.
-        // There should be a TryGetSetting taking the type is param instead of generic.
-        if (Project.Inis.TryGetSetting<float>("default-audio-config", "Volume", out var volume))
+        Project.Inis.UsingSetting<float>("default-audio-config", "Volume", null, value =>
         {
-            defaultConfig.Volume = volume;
-        }
+            defaultConfig.Volume = value;
+        });
+        
+        Project.Inis.UsingSetting<bool>("default-audio-config", "UsePlayerVolume", null, value =>
+        {
+            defaultConfig.UsePlayerVolume = value;
+        });
 
         return defaultConfig;
     }
