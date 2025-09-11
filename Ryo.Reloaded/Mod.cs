@@ -58,7 +58,7 @@ public unsafe class Mod : ModBase, IExports
         Debugger.Launch();
 #endif
 
-        this.game = Path.GetFileNameWithoutExtension(this.modLoader.GetAppConfig().AppId);
+        this.game = Path.GetFileNameWithoutExtension(this.modLoader.GetAppConfig().AppLocation);
 
         Project.Initialize(this.modConfig, this.modLoader, this.log, Color.FromArgb(110, 209, 248), true);
         Log.LogLevel = this.config.LogLevel;

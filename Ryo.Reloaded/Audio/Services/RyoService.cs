@@ -11,10 +11,15 @@ internal unsafe class RyoService
     private readonly ICriAtomEx criAtomEx;
     private readonly ICriAtomRegistry criAtomRegistry;
     private readonly Dictionary<int, float> modifiedCategories = [];
+    
+    private readonly HookContainer<criAtomExPlayer_SetVolume> setVolume;
+    private readonly Dictionary<nint, float> currPlayerVolumes = [];
+    private readonly Dictionary<nint, float> currPlayerModVolumes = [];
     private readonly HashSet<nint> modifiedPlayers = [];
 
     private bool setFileSupported;
     private bool setDataSupported;
+    private bool resetParamsSupported;
 
     public RyoService(ICriAtomEx criAtomEx, ICriAtomRegistry criAtomRegistry, ISharedScans scans)
     {
@@ -23,6 +28,9 @@ internal unsafe class RyoService
 
         scans.CreateListener<criAtomExPlayer_SetFile>(_ => setFileSupported = true);
         scans.CreateListener<criAtomExPlayer_SetData>(_ => setDataSupported = true);
+        scans.CreateListener<criAtomExPlayer_ResetParameters>(_ => resetParamsSupported = true);
+        
+        this.setVolume = scans.CreateHook<criAtomExPlayer_SetVolume>(this.CriAtomExPlayer_SetVolume, Mod.NAME);
     }
 
     public void SetAudio(Player player, AudioContainer container, int[]? categories)
@@ -77,6 +85,21 @@ internal unsafe class RyoService
 
         Log.Debug($"Redirected {container.Name}\nFile: {newAudio.FilePath}");
     }
+    
+    private void CriAtomExPlayer_SetVolume(nint playerHn, float volume)
+    {
+        // If player has modded volume, adjust new volume to it.
+        if (this.currPlayerModVolumes.TryGetValue(playerHn, out var modVol))
+        {
+            var newVol = volume * modVol;
+            this.setVolume.Hook!.OriginalFunction(playerHn, newVol);
+        }
+        else
+        {
+            this.currPlayerVolumes[playerHn] = volume;
+            this.setVolume.Hook!.OriginalFunction(playerHn, volume);
+        }
+    }
 
     private void SetAudioVolume(Player player, RyoAudio audio, int[]? categories)
     {
@@ -89,9 +112,25 @@ internal unsafe class RyoService
         // Set volume by player
         if (audio.UsePlayerVolume)
         {
-            this.criAtomEx.Player_SetVolume(player.Handle, audio.Volume);
-            this.modifiedPlayers.Add(player.Handle);
-            Log.Debug($"Modified player volume. Player ID: {player.Id} || Volume: {audio.Volume}");
+            // Set audio volume relative to player's current volume.
+            // This should allow for new audio to respect a game's volume setting
+            // if they're set on the player itself, such as in Digimon Story: Time Stranger.
+            if (this.currPlayerVolumes.TryGetValue(player.Handle, out var currVol))
+            {
+                // Save current audio's volume setting to player.
+                this.currPlayerModVolumes[player.Handle] = audio.Volume;
+                
+                // Bypass hook, and set the audio's volume relative to the player's current volume.
+                var newVol = currVol * audio.Volume;
+                this.setVolume.Hook!.OriginalFunction(player.Handle, newVol);
+                Log.Debug($"Modified player volume relative to original. Player ID: {player.Id} || Player: {currVol} || Audio: {audio.Volume} || Final: {newVol}");
+            }
+            else
+            {
+                this.criAtomEx.Player_SetVolume(player.Handle, audio.Volume);
+                this.modifiedPlayers.Add(player.Handle);
+                Log.Debug($"Modified player volume. Player ID: {player.Id} || Volume: {audio.Volume}");
+            }
         }
 
         // Set volume by category.
@@ -124,10 +163,16 @@ internal unsafe class RyoService
             }
         }
 
-        if (this.modifiedPlayers.Contains(player.Handle))
+        if (resetParamsSupported && this.modifiedPlayers.Contains(player.Handle))
         {
             this.criAtomEx.Player_ResetParameters(player.Handle);
             Log.Debug($"Reset volume for Player ID: {player.Id}");
+        }
+
+        // Clear player mod audio volume.
+        if (this.currPlayerModVolumes.ContainsKey(player.Handle))
+        {
+            this.currPlayerModVolumes.Remove(player.Handle);
         }
     }
 }

@@ -39,6 +39,7 @@ internal class CriAtomExPatterns
     public string? criAtomExAcb_ExistsName { get; init; }
     public string? criAtomExAcb_GetCueInfoById { get; init; }
     public string? criAtomAwb_LoadToc { get; init; }
+    public string? criAtomAwb_LoadTocAsync { get; init; }
     public string? criAtomExAcf_GetCategoryInfoByIndex { get; init; }
     public string? criAtomExPlayer_SetSyncPlaybackId { get; init; }
     public string? criAtomExPlayback_GetTimeSyncedWithAudioMicro { get; init; }
