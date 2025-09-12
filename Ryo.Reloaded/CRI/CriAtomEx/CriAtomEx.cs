@@ -120,7 +120,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
         this.loadAcbFile = scans.CreateHook<criAtomExAcb_LoadAcbFile>(this.Acb_LoadAcbFile, Mod.NAME);
 
         scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadToc);
-        scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadTocAsync);
+        //scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadTocAsync);
         this.loadToc = scans.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, Mod.NAME);
 
         scans.AddScan<criAtomExAcb_LoadAcbData>(this.patterns.criAtomExAcb_LoadAcbData);
